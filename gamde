@@ -1,0 +1,155 @@
+#!/usr/bin/env python3
+
+import random
+
+
+def AddStat():
+
+        global Exper
+        global addStr
+        global addVis
+        global addAgl
+        global addSpe
+        global addInt
+        global addMan
+        global addEnd
+        Exper=10
+        addStr=0
+        addVis=0
+        addAgl=0
+        addSpe=0
+        addInt=0
+        addMan=0
+        addEnd=0
+        return
+def NewbieStat():
+        global NStrength
+        global NVision
+        global NAglity
+        global NSpeed
+        global Nintel
+        global NMana
+        global NEndurance
+        NStrength = random.randint(1,12)
+        NVision = random.randint(1,12)
+        NAglity = random.randint(1,12)
+        NSpeed = random.randint(1,12)
+        Nintel = random.randint(1,12)
+        NMana = random.randint(1,15)
+        NEndurance = random.randint(1,12)
+def NewbieBody ():
+        global height
+        global weight
+        global looks
+        global special 
+        height = random.randint(4,11)
+        weight = random.randint(4,11)
+        looks = random.randint(4,11)
+        special = random.randint(4,11)
+def PlayerStat():
+        global PHealth
+        global Strength
+        global Vision
+        global Aglity
+        global Speed
+        global intel
+        global Mana
+        global Endurance
+        Strength = (int(NStrength + addStr))
+        Vision = (NVision + addVis)
+        Aglity = (NAglity + addAgl)
+        Speed = (NSpeed + addSpe)
+        intel = (Nintel + addInt)
+        Mana = (NMana + addMan)
+        Endurance = (NEndurance + addEnd )
+        PHealth = (int(weight + Endurance + Aglity))
+def Allstat():
+        print("----PLAYER STATS----\n"\
+        " \nHEALTH    = ",PHealth,       \
+        " \nStrenghth = ",Strength,     \
+        " \nVision    = ",Vision,       \
+        " \nAglity    = ", Aglity,       \
+        " \nSpeed     = ", Speed,        \
+        " \nIntel     = ", intel,        \
+        " \nMana      = ", Mana,         \
+        " \nEndurance = ", Endurance,  
+        " \nExperinceP= ", Exper )
+def StatAlo():
+    if Userinput == "ADD":
+        if Exper>0:
+            Points=input("You have",Exper," EXP Points, how many Points do you want to use")
+            if Points <= Exper :
+                print("Where do you want to spend you Points")
+                print ("1. Strength")
+                print ("2. Vision")
+                print ("3. Aglity")
+                print ("4. Speed")
+                print ("5. intel")
+                print ("6. Mana")
+                print ("7. Endurance")
+                stat_choice = input("> ")
+            if stat_choice == "1":
+                Strength += Points
+                print ("You have added,",Points,"Points To your Streng")
+                Exper -= Points
+                return
+            if stat_choice == "2":
+                 Vision += Points
+                 print ("You have added,",Points,"Points To your Strength")
+                 Exper -= Points
+                 return
+            if stat_choice == "3":
+                Aglity += Points
+                print ("You have added,",Points,"Points To your Strength")
+                Exper -= Points
+            if stat_choice == "4":
+                Speed += Points
+                print ("You have added,",Points,"Points To your Strength")
+                Exper -= Points
+            if stat_choice == "5":
+                intel += Points
+                print ("You have added,",Points,"Points To your Strength")
+                Exper -= Points
+            if stat_choice == "6":
+                Mana += Points
+                print ("You have added,",Points,"Points To your Strength")
+                Exper -= Points
+            if stat_choice == "7":
+                Endurance += Points
+                print ("You have added,",Points,"Points To your Strength")
+                Exper -= Points
+            else: 
+                print('You dont have enough Points')
+                return
+        else: 
+            print ("You dont have enought points")
+            return
+
+
+AddStat()
+NewbieStat()
+NewbieBody()
+PlayerStat()
+Allstat
+StatAlo
+
+
+
+print('Welcome to game')
+print("This game you'll create a character in Realm 5 the  Astroph World!!! ")
+Name = input ('Enter your character name ')
+print('Welcome',Name, 'lets build your character')
+print("Astroph has a few races choose yours your stats are randomized but their are specialties to some")
+Race = input ("So Their are Ork, Humans,Elves,Dwarves and Beastman ")
+print("Okay so now you have a race by the way the Beastman Race has many option you'll get some thing random")
+print('Here are your default stats')
+Allstat()
+print("So those are you default Stats as you play you will gain leveling point to increase them")
+print("Currently their random but you have 10 Experince points to place where ever you would like")
+#PointVal,Whr = input("To increase your stats first say add, then the amount you want to add, then where")
+Userinput=input("To use your experenice points say ADD ")
+StatAlo()
+
+
+
+
