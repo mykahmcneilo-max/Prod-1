@@ -1,0 +1,279 @@
+#!/usr/bin/env python3
+import random
+import time
+import sys
+
+# ================= UI & EFFECTS =================
+
+RESET = "\033[0m"
+BOLD = "\033[1m"
+RED = "\033[31m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+BLUE = "\033[34m"
+MAGENTA = "\033[35m"
+CYAN = "\033[36m"
+
+def clear():
+    print("\033c", end="")
+
+def slow_print(text, speed=0.03, color=""):
+    for c in text:
+        sys.stdout.write(color + c + RESET)
+        sys.stdout.flush()
+        time.sleep(speed)
+    print()
+
+def line(char="─", width=60):
+    print(char * width)
+
+def title(text):
+    line("═")
+    print(f"{BOLD}{CYAN}{text.center(60)}{RESET}")
+    line("═")
+
+# ================= PLAYER SETUP =================
+
+def AddStat():
+    global Exper, addStr, addVis, addAgl, addSpe, addInt, addMan, addEnd
+    Exper = 10
+    addStr = addVis = addAgl = addSpe = addInt = addMan = addEnd = 0
+
+def NewbieStat():
+    global NStrength, NVision, NAglity, NSpeed, Nintel, NMana, NEndurance
+    NStrength = random.randint(1, 12)
+    NVision = random.randint(1, 12)
+    NAglity = random.randint(1, 12)
+    NSpeed = random.randint(1, 12)
+    Nintel = random.randint(1, 12)
+    NMana = random.randint(1, 15)
+    NEndurance = random.randint(1, 12)
+
+def NewbieBody():
+    global weight
+    weight = random.randint(4, 11)
+
+def PlayerStat():
+    global PHealth, Strength, Vision, Aglity, Speed, intel, Mana, Endurance
+    Strength = NStrength + addStr
+    Vision = NVision + addVis
+    Aglity = NAglity + addAgl
+    Speed = NSpeed + addSpe
+    intel = Nintel + addInt
+    Mana = NMana + addMan
+    Endurance = NEndurance + addEnd
+    PHealth = weight + Endurance + Aglity
+
+# ================= DISPLAY =================
+
+def StatusPage():
+    clear()
+    title("PLAYER STATUS")
+    print(f"Name     : {Name}")
+    print(f"Race     : {Race}")
+    if SubRace:
+        print(f"Sub-Race : {MAGENTA}{SubRace}{RESET}")
+    print(f"Gold     : {YELLOW}{Gold} 🪙{RESET}")
+
+    line()
+    print(f"{GREEN}Inventory:{RESET}")
+    for item in Inventory:
+        print(" •", item)
+
+    line()
+    print(f"{BLUE}Abilities:{RESET}")
+    for ab in Abilities:
+        print(" ✦", ab)
+
+    line("═")
+    input("\nPress Enter to return...")
+
+def Allstat():
+    clear()
+    title("CHARACTER STATS")
+    print("❤️  Health     :", PHealth)
+    print("💪 Strength   :", Strength)
+    print("👁️  Vision     :", Vision)
+    print("⚡ Aglity     :", Aglity)
+    print("🏃 Speed      :", Speed)
+    print("🧠 Intel      :", intel)
+    print("🔮 Mana       :", Mana)
+    print("🛡️  Endurance  :", Endurance)
+    line()
+    print(f"{YELLOW}EXP Available: {Exper}{RESET}")
+    line("═")
+    input("\nPress Enter to return...")
+
+# ================= EXP SYSTEM =================
+
+def StatAlo():
+    global Exper, addStr, addVis, addAgl, addSpe, addInt, addMan, addEnd
+    if Exper <= 0:
+        slow_print("No EXP available.", 0.02, RED)
+        return
+
+    points = int(input(f"EXP ({Exper}) > Spend how much: "))
+    if points > Exper or points <= 0:
+        return
+
+    print("""
+1. Strength
+2. Vision
+3. Aglity
+4. Speed
+5. Intel
+6. Mana
+7. Endurance
+""")
+    c = input("> ")
+
+    if c == "1": addStr += points
+    elif c == "2": addVis += points
+    elif c == "3": addAgl += points
+    elif c == "4": addSpe += points
+    elif c == "5": addInt += points
+    elif c == "6": addMan += points
+    elif c == "7": addEnd += points
+    else: return
+
+    Exper -= points
+    PlayerStat()
+    slow_print("Stats increased!", 0.02, GREEN)
+
+# ================= WORLD =================
+
+World = {
+    "village": {
+        "desc": "A quiet village protected by worn stone walls.",
+        "monsters": ["Goblin"],
+        "exits": ["forest"]
+    },
+    "forest": {
+        "desc": "Dark trees surround you. You feel watched.",
+        "monsters": ["Goblin", "Wolf"],
+        "exits": ["village", "cave"]
+    },
+    "cave": {
+        "desc": "A damp cave filled with bones.",
+        "monsters": ["Orc"],
+        "exits": ["forest"]
+    }
+}
+
+Monsters = {
+    "Goblin": {
+        "hp": 20,
+        "atk": (2, 5),
+        "loot": {"Gold": (5, 15), "Rusty Dagger": 0.3}
+    },
+    "Wolf": {
+        "hp": 25,
+        "atk": (3, 6),
+        "loot": {"Wolf Pelt": 0.5, "Gold": (5, 10)}
+    },
+    "Orc": {
+        "hp": 40,
+        "atk": (5, 10),
+        "loot": {"Orc Axe": 0.2, "Gold": (10, 30)}
+    }
+}
+
+current_location = "village"
+
+def give_loot(monster):
+    global Gold, Inventory
+    for item, chance in monster["loot"].items():
+        if isinstance(chance, tuple):
+            Gold += random.randint(*chance)
+        else:
+            if random.random() <= chance:
+                Inventory.append(item)
+
+def fight(mon_name):
+    global PHealth, Exper
+    m = Monsters[mon_name]
+    hp = m["hp"]
+
+    slow_print(f"A {mon_name} attacks!", 0.03, RED)
+    while hp > 0 and PHealth > 0:
+        dmg = random.randint(Strength, Strength + 4)
+        hp -= dmg
+        slow_print(f"You hit for {dmg}", 0.02)
+
+        if hp <= 0:
+            slow_print(f"{mon_name} defeated!", 0.02, GREEN)
+            give_loot(m)
+            Exper += 5
+            return
+
+        edmg = random.randint(*m["atk"])
+        PHealth -= edmg
+        slow_print(f"You take {edmg} damage", 0.02, RED)
+
+def explore():
+    global current_location
+    clear()
+    loc = World[current_location]
+    title(current_location.upper())
+    slow_print(loc["desc"], 0.03)
+
+    if loc["monsters"]:
+        fight(random.choice(loc["monsters"]))
+
+    slow_print("\nPaths:", 0.02)
+    for e in loc["exits"]:
+        print("-", e)
+
+    d = input("Travel to: ").lower()
+    if d in loc["exits"]:
+        current_location = d
+
+# ================= GAME START =================
+
+BeastmanTypes = [
+    "Vampirekin", "Werewolf", "Lizardman", "Dragonkin", "Winged Folk",
+    "Catfolk", "Wolfkin", "Foxkin", "Minotaur", "Gargoyle",
+    "Harpy", "Naga", "Batfolk", "Insectoid", "Satyr",
+    "Succubus", "Incubus", "Ratfolk", "Frogman", "Lamian"
+]
+
+AddStat()
+NewbieStat()
+NewbieBody()
+PlayerStat()
+
+Gold = 100
+Inventory = ["Rusty Sword"]
+Abilities = ["Quick Strike"]
+
+clear()
+slow_print("Welcome to Realm 5: Astroph World", 0.05, CYAN)
+Name = input("Enter your name: ")
+
+while True:
+    Race = input("Choose race (Ork, Human, Elf, Dwarf, Beastman): ").title()
+    if Race == "Beastman":
+        SubRace = random.choice(BeastmanTypes)
+        slow_print(f"You are a {SubRace}", 0.03, MAGENTA)
+        break
+    if Race in ["Ork", "Human", "Elf", "Dwarf"]:
+        SubRace = None
+        break
+
+# ================= MAIN LOOP =================
+
+while True:
+    print("""
+COMMANDS
+STATUS   STATS   ADD
+EXPLORE  END GAME
+""")
+    cmd = input("> ").upper()
+
+    if cmd == "STATUS": StatusPage()
+    elif cmd == "STATS": Allstat()
+    elif cmd == "ADD": StatAlo()
+    elif cmd == "EXPLORE": explore()
+    elif cmd == "END GAME":
+        slow_print("Thanks for playing, adventurer.", 0.05, GREEN)
+        break
