@@ -1,23 +1,49 @@
 #!/usr/bin/env python3
 import random
+import time
+import sys
 
+# ================== UI & EFFECTS ==================
+
+RESET = "\033[0m"
+BOLD = "\033[1m"
+
+RED = "\033[31m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+BLUE = "\033[34m"
+MAGENTA = "\033[35m"
+CYAN = "\033[36m"
+
+def clear():
+    print("\033c", end="")
+
+def slow_print(text, speed=0.03, color=""):
+    for char in text:
+        sys.stdout.write(color + char + RESET)
+        sys.stdout.flush()
+        time.sleep(speed)
+    print()
+
+def line(char="─", width=50):
+    print(char * width)
+
+def title(text):
+    line("═")
+    print(f"{BOLD}{CYAN}{text.center(50)}{RESET}")
+    line("═")
+
+
+# ================== GAME SETUP ==================
 
 def AddStat():
     global Exper, addStr, addVis, addAgl, addSpe, addInt, addMan, addEnd
-
     Exper = 10
-    addStr = 0
-    addVis = 0
-    addAgl = 0
-    addSpe = 0
-    addInt = 0
-    addMan = 0
-    addEnd = 0
+    addStr = addVis = addAgl = addSpe = addInt = addMan = addEnd = 0
 
 
 def NewbieStat():
     global NStrength, NVision, NAglity, NSpeed, Nintel, NMana, NEndurance
-
     NStrength = random.randint(1, 12)
     NVision = random.randint(1, 12)
     NAglity = random.randint(1, 12)
@@ -28,17 +54,12 @@ def NewbieStat():
 
 
 def NewbieBody():
-    global height, weight, looks, special
-
-    height = random.randint(4, 11)
+    global weight
     weight = random.randint(4, 11)
-    looks = random.randint(4, 11)
-    special = random.randint(4, 11)
 
 
 def PlayerStat():
     global PHealth, Strength, Vision, Aglity, Speed, intel, Mana, Endurance
-
     Strength = NStrength + addStr
     Vision = NVision + addVis
     Aglity = NAglity + addAgl
@@ -46,93 +67,169 @@ def PlayerStat():
     intel = Nintel + addInt
     Mana = NMana + addMan
     Endurance = NEndurance + addEnd
-
     PHealth = weight + Endurance + Aglity
 
 
-def Allstat():
-    print("\n----PLAYER STATS----")
-    print("HEALTH    =", PHealth)
-    print("Strength  =", Strength)
-    print("Vision    =", Vision)
-    print("Aglity    =", Aglity)
-    print("Speed     =", Speed)
-    print("Intel     =", intel)
-    print("Mana      =", Mana)
-    print("Endurance =", Endurance)
-    print("EXP       =", Exper)
+# ================== DISPLAY ==================
 
+def Allstat():
+    clear()
+    title("CHARACTER STATS")
+
+    print(f"❤️  Health     : {PHealth}")
+    print(f"💪 Strength   : {Strength}")
+    print(f"👁️  Vision     : {Vision}")
+    print(f"⚡ Aglity     : {Aglity}")
+    print(f"🏃 Speed      : {Speed}")
+    print(f"🧠 Intel      : {intel}")
+    print(f"🔮 Mana       : {Mana}")
+    print(f"🛡️  Endurance  : {Endurance}")
+
+    line()
+    print(f"{YELLOW}EXP Available : {Exper}{RESET}")
+    line("═")
+    input("\nPress Enter to return...")
+
+
+def StatusPage():
+    clear()
+    title("PLAYER STATUS")
+
+    print(f"{BOLD}Name:{RESET} {Name}")
+    print(f"{BOLD}Race:{RESET} {Race}")
+    if SubRace:
+        print(f"{BOLD}Sub-Race:{RESET} {MAGENTA}{SubRace}{RESET}")
+    print(f"{BOLD}Gold:{RESET} {YELLOW}{Gold} 🪙{RESET}")
+
+    line()
+
+    print(f"{GREEN}Inventory:{RESET}")
+    if Inventory:
+        for item in Inventory:
+            print(f" • {item}")
+    else:
+        print(" (Empty)")
+
+    line()
+
+    print(f"{BLUE}Abilities:{RESET}")
+    if Abilities:
+        for ab in Abilities:
+            print(f" ✦ {ab}")
+    else:
+        print(" None")
+
+    line("═")
+    input("\nPress Enter to return...")
+
+
+# ================== EXP SYSTEM ==================
 
 def StatAlo():
     global Exper, addStr, addVis, addAgl, addSpe, addInt, addMan, addEnd
 
-    if Userinput.upper() == "ADD":
+    if Exper <= 0:
+        slow_print("You have no EXP points.", 0.02, RED)
+        return
 
-        if Exper <= 0:
-            print("You don't have enough points")
-            return
+    while True:
+        try:
+            points = int(input(f"EXP ({Exper}) > How many to spend: "))
+            if 1 <= points <= Exper:
+                break
+            print("Invalid amount.")
+        except ValueError:
+            print("Numbers only.")
 
-        Points = int(input(f"You have {Exper} EXP Points. How many do you want to use? "))
+    print("""
+1. Strength
+2. Vision
+3. Aglity
+4. Speed
+5. Intel
+6. Mana
+7. Endurance
+""")
 
-        if Points > Exper:
-            print("You don't have enough points")
-            return
+    choice = input("> ").strip()
 
-        print("\nWhere do you want to spend your points?")
-        print("1. Strength")
-        print("2. Vision")
-        print("3. Aglity")
-        print("4. Speed")
-        print("5. Intel")
-        print("6. Mana")
-        print("7. Endurance")
+    if choice == "1": addStr += points
+    elif choice == "2": addVis += points
+    elif choice == "3": addAgl += points
+    elif choice == "4": addSpe += points
+    elif choice == "5": addInt += points
+    elif choice == "6": addMan += points
+    elif choice == "7": addEnd += points
+    else:
+        print("Invalid choice.")
+        return
 
-        stat_choice = input("> ")
-
-        if stat_choice == "1":
-            addStr += Points
-        elif stat_choice == "2":
-            addVis += Points
-        elif stat_choice == "3":
-            addAgl += Points
-        elif stat_choice == "4":
-            addSpe += Points
-        elif stat_choice == "5":
-            addInt += Points
-        elif stat_choice == "6":
-            addMan += Points
-        elif stat_choice == "7":
-            addEnd += Points
-        else:
-            print("Invalid choice")
-            return
-
-        Exper -= Points
-        PlayerStat()
-        print("\nPoints applied successfully!")
+    Exper -= points
+    PlayerStat()
+    slow_print("Stats updated successfully!", 0.02, GREEN)
 
 
-# --- Game Start ---
+# ================== GAME START ==================
+
+BeastmanTypes = [
+    "Vampirekin", "Werewolf", "Lizardman", "Dragonkin", "Winged Folk",
+    "Harpy", "Succubus", "Incubus", "Catfolk", "Wolfkin",
+    "Foxkin", "Ratfolk", "Minotaur", "Satyr", "Lamian",
+    "Naga", "Gargoyle", "Batfolk", "Frogman", "Insectoid"
+]
+
 AddStat()
 NewbieStat()
 NewbieBody()
 PlayerStat()
 
-print('Welcome to game')
-print("This game you'll create a character in Realm 5 the Astroph World!!! ")
+Gold = 100
+Inventory = ["Rusty Sword", "Health Potion"]
+Abilities = ["Quick Strike"]
 
-Name = input('Enter your character name: ')
-print('Welcome', Name, 'lets build your character')
+clear()
+slow_print("Welcome to Realm 5: Astroph World", 0.05, CYAN)
 
-Race = input("Choose a race (Ork, Humans, Elves, Dwarves, Beastman): ")
+Name = input("\nEnter your character name: ").strip()
 
-print('\nHere are your default stats')
-Allstat()
+while True:
+    Race = input("Choose race (Ork, Human, Elf, Dwarf, Beastman): ").strip().title()
+    if Race in ["Ork", "Human", "Elf", "Dwarf"]:
+        SubRace = None
+        break
+    if Race == "Beastman":
+        SubRace = random.choice(BeastmanTypes)
+        slow_print(f"You are a Beastman: {SubRace}", 0.03, MAGENTA)
+        break
+    print("Invalid race.")
 
-print("\nYou have 10 Experience points to place wherever you want")
+slow_print("Your journey begins...", 0.04, GREEN)
 
-Userinput = input("To use your experience points type ADD: ")
-StatAlo()
+# ================== MAIN LOOP ==================
 
-print("\nUpdated Stats:")
-Allstat()
+while True:
+    print(f"""
+{CYAN}════════════════════════════════════════════
+ COMMANDS
+════════════════════════════════════════════{RESET}
+ STATUS   → Character overview
+ STATS    → View stats
+ ADD      → Spend EXP
+ END GAME → Quit
+════════════════════════════════════════════
+""")
+
+    cmd = input("> ").strip().upper()
+
+    if cmd == "STATUS":
+        StatusPage()
+    elif cmd == "STATS":
+        Allstat()
+    elif cmd == "ADD":
+        StatAlo()
+    elif cmd == "END GAME":
+        clear()
+        slow_print("Thanks for playing, adventurer.", 0.05, GREEN)
+        break
+    else:
+        print(f"{RED}Unknown command.{RESET}")
