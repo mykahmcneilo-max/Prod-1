@@ -1,0 +1,194 @@
+import random
+import time
+import sys
+import os
+
+# ================= UI COLORS =================
+RESET = "\033[0m"
+BOLD = "\033[1m"
+
+RED = "\033[31m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+BLUE = "\033[34m"
+MAGENTA = "\033[35m"
+CYAN = "\033[36m"
+
+# ================= UI FUNCTIONS =================
+
+def clear():
+    os.system("cls" if os.name == "nt" else "clear")
+
+def slow_print(text, speed=0.02, color=""):
+    for char in text:
+        sys.stdout.write(color + char + RESET)
+        sys.stdout.flush()
+        time.sleep(speed)
+    print()
+
+def line(char="═", width=50):
+    print(char * width)
+
+def title(text):
+    line()
+    print(f"{BOLD}{CYAN}{text.center(50)}{RESET}")
+    line()
+
+def hp_bar(current, maximum, length=20):
+    percent = current / maximum
+    filled = int(length * percent)
+    bar = "█" * filled + "░" * (length - filled)
+    return f"[{bar}] {current}/{maximum}"
+
+# ================= PLAYER SETUP =================
+
+def AddStat():
+    global Exper, addStr, addAgi, addInt, addEnd
+    Exper = 10
+    addStr = addAgi = addInt = addEnd = 0
+
+def NewbieStat():
+    global baseStr, baseAgi, baseInt, baseEnd
+    baseStr = random.randint(5, 10)
+    baseAgi = random.randint(5, 10)
+    baseInt = random.randint(5, 10)
+    baseEnd = random.randint(5, 10)
+
+def PlayerStat():
+    global Strength, Agility, Intelligence, Endurance, MaxHP, PHealth
+    Strength = baseStr + addStr
+    Agility = baseAgi + addAgi
+    Intelligence = baseInt + addInt
+    Endurance = baseEnd + addEnd
+    MaxHP = 50 + (Endurance * 2)
+    PHealth = MaxHP
+
+# ================= STATUS =================
+
+def StatusPage():
+    clear()
+    title("PLAYER STATUS")
+
+    print(f"{BOLD}Name:{RESET} {Name}")
+    print(f"{BOLD}Race:{RESET} {Race}")
+    if SubRace:
+        print(f"{BOLD}Sub-Race:{RESET} {MAGENTA}{SubRace}{RESET}")
+
+    print(f"{BOLD}Gold:{RESET} {YELLOW}{Gold} 🪙{RESET}")
+    print()
+
+    print(f"{GREEN}Inventory:{RESET}")
+    if Inventory:
+        for item in Inventory:
+            print(" •", item)
+    else:
+        print(" (Empty)")
+
+    print()
+    print(f"{BLUE}Abilities:{RESET}")
+    for ab in Abilities:
+        print(" ✦", ab)
+
+    line()
+    input("Press Enter...")
+
+def Allstat():
+    clear()
+    title("CHARACTER STATS")
+
+    print("HP        :", hp_bar(PHealth, MaxHP))
+    print("Strength  :", Strength)
+    print("Agility   :", Agility)
+    print("Intellect :", Intelligence)
+    print("Endurance :", Endurance)
+    print()
+    print(f"{YELLOW}EXP Available: {Exper}{RESET}")
+
+    line()
+    input("Press Enter...")
+
+# ================= EXP SYSTEM =================
+
+def StatAlo():
+    global Exper, addStr, addAgi, addInt, addEnd
+
+    if Exper <= 0:
+        slow_print("No EXP available.", 0.02, RED)
+        return
+
+    try:
+        points = int(input(f"EXP ({Exper}) > How many to spend: "))
+        if points <= 0 or points > Exper:
+            return
+    except:
+        return
+
+    print("""
+1. Strength
+2. Agility
+3. Intelligence
+4. Endurance
+""")
+
+    choice = input("> ").strip()
+
+    if choice == "1": addStr += points
+    elif choice == "2": addAgi += points
+    elif choice == "3": addInt += points
+    elif choice == "4": addEnd += points
+    else:
+        return
+
+    Exper -= points
+    PlayerStat()
+    slow_print("Stats increased!", 0.02, GREEN)
+
+# ================= MONSTERS =================
+
+Monsters = {
+    "Goblin": {"hp": 40, "atk": (4, 8)},
+    "Wolf": {"hp": 50, "atk": (5, 10)},
+    "Orc": {"hp": 70, "atk": (8, 15)}
+}
+
+def give_loot():
+    global Gold
+    gained = random.randint(10, 25)
+    Gold += gained
+    slow_print(f"You found {gained} gold!", 0.02, YELLOW)
+
+# ================= BATTLE =================
+
+def PokemonBattle(mon_name):
+    global PHealth, Exper
+
+    monster = Monsters[mon_name]
+    monster_hp = monster["hp"]
+    monster_max = monster["hp"]
+
+    clear()
+    title(f"A Wild {mon_name} Appeared!")
+
+    while monster_hp > 0 and PHealth > 0:
+
+        print("\nYour HP:", hp_bar(PHealth, MaxHP))
+        print(f"{mon_name} HP:", hp_bar(monster_hp, monster_max))
+
+        print(f"""
+1. Attack
+2. Ability
+3. Run
+""")
+
+        choice = input("> ").strip()
+
+        if choice == "1":
+            dmg = random.randint(Strength, Strength + 6)
+            monster_hp -= dmg
+            slow_print(f"You dealt {dmg} damage!", 0.02, GREEN)
+
+        elif choice == "2":
+            dmg = random.randint(Strength + 5, Strength + 12)
+            monster_hp -= dmg
+            slow_print("You used a special ability!", 0.02, BLUE)
+            slow_print(f"It dealt {dmg}
